@@ -1,0 +1,71 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function role() {
+      return request.auth.token.role;
+    }
+
+    function superAdmin() {
+      return signedIn() && role() == "super_admin";
+    }
+
+    function admin() {
+      return signedIn() && (role() == "super_admin" || role() == "admin");
+    }
+
+    function moderator() {
+      return signedIn() && (role() in ["super_admin", "admin", "moderator"]);
+    }
+
+    function editor() {
+      return signedIn() && (role() in ["super_admin", "admin", "editor"]);
+    }
+
+    match /adminProfiles/{uid} {
+      allow read: if signedIn() && (request.auth.uid == uid || admin());
+      allow create: if signedIn() && request.auth.uid == uid;
+      allow update: if signedIn() && (request.auth.uid == uid || superAdmin());
+      allow delete: if superAdmin();
+    }
+
+    match /managedUsers/{userId} {
+      allow read: if moderator();
+      allow create: if admin();
+      allow update: if moderator();
+      allow delete: if superAdmin();
+    }
+
+    match /managedRecords/{recordId} {
+      allow read: if signedIn();
+      allow create, update: if editor();
+      allow delete: if admin();
+    }
+
+    match /dashboardMetrics/{metricId} {
+      allow read: if signedIn();
+      allow write: if admin();
+    }
+
+    match /activityLogs/{logId} {
+      allow read: if moderator();
+      allow create: if signedIn();
+      allow update, delete: if false;
+    }
+
+    match /notifications/{notificationId} {
+      allow read: if signedIn();
+      allow create: if admin();
+      allow update: if signedIn();
+      allow delete: if admin();
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

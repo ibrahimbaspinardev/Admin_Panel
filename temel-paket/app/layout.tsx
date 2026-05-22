@@ -1,21 +1,36 @@
 import type { Metadata } from "next";
-import type { ReactNode } from "react";
+import { Geist, Geist_Mono } from "next/font/google";
+import { AdminShell } from "./_components/admin-shell";
 import "./globals.css";
-import "./dashboard.css";
+
+const geistSans = Geist({
+  variable: "--font-geist-sans",
+  subsets: ["latin"],
+});
+
+const geistMono = Geist_Mono({
+  variable: "--font-geist-mono",
+  subsets: ["latin"],
+});
 
 export const metadata: Metadata = {
-  title: "Temel Paket Admin Panel",
-  description: "Basic admin panel package built with Next.js.",
+  title: "Başlangıç Admin Paneli",
+  description: "Temel paket kapsamında sade ve modern admin paneli.",
 };
 
 export default function RootLayout({
   children,
 }: Readonly<{
-  children: ReactNode;
+  children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body>{children}</body>
+    <html
+      lang="tr"
+      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+    >
+      <body className="min-h-full">
+        <AdminShell>{children}</AdminShell>
+      </body>
     </html>
   );
 }
